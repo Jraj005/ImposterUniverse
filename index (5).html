@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Imposter Universe</title>
+<link href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--card:#161616;--ink:#f2f2f2;--dim:#9a9a9a;--gold:#c6ff3d;--red:#ff3d9a;--grn:#29d8ff;--line:#2e2e2e}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 Poppins,system-ui,sans-serif}
+#app{max-width:520px;margin:0 auto;padding:20px 16px 48px}
+h1,h2{font-family:'Rozha One',Georgia,serif;font-weight:400;margin:0}
+h1{font-size:44px;line-height:1.05;margin-top:20px}h2{font-size:28px;margin-bottom:6px}
+.sub{color:var(--dim);margin:6px 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:14px 0}
+input,textarea,select{width:100%;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:#0f0f0f;color:var(--ink);font:inherit;margin:6px 0 10px}
+input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+label{font-weight:600;font-size:14px;color:var(--dim)}
+button{font:inherit;font-weight:600;border:0;border-radius:14px;padding:13px 18px;cursor:pointer;background:var(--gold);color:#101400;width:100%;margin:6px 0}
+button.alt{background:#262626;color:var(--ink)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:10px}.row>*{flex:1}.row button.add{flex:0 0 90px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{width:auto;padding:8px 14px;background:#262626;color:var(--ink);margin:0;border-radius:99px}
+.chip.on{background:var(--grn);color:#001a22}
+.pl{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}.pl:last-child{border:0}
+.pl button{width:auto;padding:4px 12px;margin:0}
+.pick{display:flex;justify-content:space-between;background:#262626;color:var(--ink);text-align:left}
+.pick.next{outline:2px solid var(--gold)}.pick.done{opacity:.45}
+.hold{min-height:260px;display:grid;place-items:center;text-align:center;border:3px dashed var(--gold);cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none;-webkit-touch-callout:none;padding:16px}
+.hold b{font-family:'Rozha One',serif;font-weight:400;font-size:40px;display:block}
+.imp{color:var(--red)}.ok{color:var(--grn)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--red);color:#fff;padding:10px 18px;border-radius:99px;font-weight:600}
+</style></head><body><div id="app"></div>
+<script>
+const WORDS={
+Food:["Biryani|Rice","Pani Puri|Tangy","Vada Pav|Bun","Masala Dosa|Crispy","Chole Bhature|Fried","Jalebi|Sweet","Samosa|Triangle","Dhokla|Spongy","Butter Chicken|Creamy","Rasgulla|Syrupy","Pav Bhaji|Buttery","Idli|Steamed","Gulab Jamun|Round","Chai|Hot","Paneer Tikka|Grilled","Poha|Breakfast","Khichdi|Comfort","Lassi|Cold","Thepla|Flatbread","Momos|Dumpling","Dal Baati Churma|Rajasthani","Misal Pav|Spicy","Kachori|Flaky","Aloo Paratha|Stuffed","Rajma Chawal|Homely","Gajar Halwa|Winter","Kulfi|Frozen","Maggi|Instant","Filter Coffee|Frothy","Sev Puri|Crunchy","Undhiyu|Seasonal","Fafda Jalebi|Sunday","Hyderabadi Haleem|Ramzan","Medu Vada|Savoury","Bhel Puri|Puffed","Rabri|Thick","Kadhi|Yogurt","Mysore Pak|Ghee","Pakora|Monsoon","Butter Naan|Soft"],
+Places:["Taj Mahal|Marble","Goa Beach|Sandy","Red Fort|Historic","Marine Drive|Seaside","Kerala Backwaters|Green","Jaipur|Pink","Varanasi Ghat|Holy","India Gate|Memorial","Golden Temple|Golden","Ladakh|Mountains","Gateway of India|Arch","Rann of Kutch|White","Railway Station|Platforms","Local Train|Crowded","Kumbh Mela|Pilgrims","Wedding Mandap|Ceremony","Hawa Mahal|Windows","Charminar|Hyderabad","Mysore Palace|Royal","Munnar|Tea","Rishikesh|Rafting","Statue of Unity|Tall","Sabarmati Ashram|Peaceful","Kankaria Lake|Waterfront","Connaught Place|Circular","Howrah Bridge|Steel","Wagah Border|Parade","Hampi|Ruins","Spiti Valley|Cold","Andaman Islands|Remote","Chandni Chowk|Bustling","Lotus Temple|Petals","Cricket Stadium|Floodlights","Cinema Hall|Popcorn","Sarafa Bazaar|Nightlife","Dharavi|Dense","Bangalore Traffic|Jam","Gir Forest|Lions","Ranthambore|Tigers","Amritsar|Punjab"],
+People:["Chaiwala|Roadside","Auto Driver|Meter","Sharma Ji|Topper","Cricket Umpire|Decisions","Pandit Ji|Rituals","Bollywood Villain|Dramatic","Neighbourhood Aunty|Gossip","Wedding Photographer|Smile","Maths Teacher|Strict","Delivery Boy|Fast","Traffic Police|Signal","Ghar Wali Maa|Caring","Sabziwala|Loud","Bhaiya at Xerox|Copies","Startup Founder|Ambitious","Govt Babu|Paperwork","Dhoni|Calm","Virat Kohli|Aggressive","Rohit Sharma|Opener","Hardik Pandya|Allrounder","Jasprit Bumrah|Bowler","Neeraj Chopra|Athlete","Shah Rukh Khan|Romantic","Salman Khan|Action","Amitabh Bachchan|Legendary","Ranveer Singh|Energetic","Deepika Padukone|Actress","Alia Bhatt|Young","Kangana Ranaut|Outspoken","Rakhi Sawant|Dramatic","Uorfi Javed|Fashion","Elvish Yadav|YouTuber","CarryMinati|Roaster","Bhuvan Bam|Comedy","Ranveer Allahbadia|Podcaster","Samay Raina|Comedian","Kapil Sharma|Host","Mukesh Ambani|Billionaire","Ratan Tata|Industrialist","Elon Musk|Tech","Virat-Anushka|Couple","Taylor Swift|Singer","A R Rahman|Composer","Diljit Dosanjh|Punjabi","Arijit Singh|Soulful","Nita Ambani|Philanthropist","Sam Altman|AI","Mark Zuckerberg|Social"],
+Things:["Cricket Bat|Willow","Dupatta|Fabric","Pressure Cooker|Whistles","Scooter|Two-wheeler","Diya|Clay","Rangoli|Colourful","Tabla|Drums","Saree|Draped","Jhumka|Dangling","TV Remote|Buttons","Matka|Earthen","Hand Fan|Cooling","Cycle Rickshaw|Pedals","Tiffin Box|Steel","Kurta|Loose","Mehendi|Designs","Firecracker|Loud","Charpai|Woven","Chappal|Rubber","Bindi|Tiny","Turban|Wrapped","Dholak|Rhythm","Sitar|Strings","Kite|Paper","Pickle Jar|Tangy","Steel Glass|Shiny","Ration Card|Government","Aadhaar Card|Identity","UPI QR Code|Digital","Jugaad|Hack","Mangalsutra|Gold","Gamcha|Cotton","Lathi|Wooden","Hookah|Smoky","Marigold Garland|Fragrant","Ludo|Dice","Carrom Board|Striker","Bullet Bike|Thumping","Power Bank|Portable","Selfie Stick|Extendable"],
+Famous:["IPL|Tournament","World Cup Final|Trophy","Bigg Boss|Reality","India's Got Latent|Comedy","Kaun Banega Crorepati|Quiz","Chandrayaan|Space","Adipurush|Epic","Pathaan|Spy","Animal|Intense","Pushpa|Swagger","RRR|Period","Naatu Naatu|Dance","Jawan|Action","Anant Ambani Wedding|Lavish","Cash for Questions|Scandal","Digital India|Campaign","Demonetisation|Currency","GST|Tax","Shark Tank India|Pitching","Kolaveri Di|Viral","Mirzapur|Gangster","Sacred Games|Crime","Panchayat|Village","Dunki Route|Migration","Paris Olympics|Medals","Instagram Reels|Short","ChatGPT|Chatbot","Deepfake|Fake","Zomato|Delivery","Byju's|Edtech","Paytm|Payments","Ola vs Uber|Rivalry","Vande Bharat|Train","Bullet Train|Speed","Royal Challengers|Red","Chennai Super Kings|Yellow","Mumbai Indians|Blue","Sidhu Moosewala Song|Punjabi","Kantara|Folklore","Stree 2|Horror"],
+Social:["Mr Beast|Giveaways","Andrew Tate|Kickboxer","Logan Paul|Boxer","PewDiePie|Gamer","Kylie Jenner|Mogul","Kim Kardashian|Reality","Kanye West|Rapper","Munawar Faruqui|Comedian","Orry|Socialite","Dolly Chaiwala|Tea","Anjali Arora|Viral","Sourav Joshi|Vlogger","Ashish Chanchlani|Sketches","Tanmay Bhat|Comedian","Flying Beast|Family","Triggered Insaan|Roaster","Mortal|Streamer","Poonam Pandey|Stunts","Khaby Lame|Silent","Kili Paul|Lip-sync","Dhinchak Pooja|Cringe","Ankur Warikoo|Finance"]};
+const app=document.getElementById('app');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pick=a=>a[Math.random()*a.length|0];
+let G={names:[],imp:1,cats:Object.keys(WORDS),custom:'',used:[]};
+try{Object.assign(G,JSON.parse(localStorage.iu||'{}'))}catch(e){}
+if(G.v!==2){G.cats=Object.keys(WORDS);G.v=2}
+const save=()=>{try{localStorage.iu=JSON.stringify(G)}catch(e){}};
+let scr='names',R=null,cur=null;
+const go=s=>{scr=s;render()};
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
+const maxImp=()=>Math.max(1,Math.floor((G.names.length-1)/2));
+
+function addName(){const i=document.getElementById('nm'),v=i.value.trim().slice(0,16);
+  if(!v)return;if(G.names.some(n=>n.toLowerCase()===v.toLowerCase()))return toast('Name already added');
+  G.names.push(v);save();render();document.getElementById('nm').focus()}
+function delName(i){G.names.splice(i,1);save();render()}
+function toggleCat(c){const i=G.cats.indexOf(c);i<0?G.cats.push(c):G.cats.splice(i,1);save();render()}
+
+function start(){
+  G.custom=document.getElementById('cw')?.value||G.custom;
+  const customs=G.custom.split(/[\n,]/).map(x=>x.trim()).filter(Boolean);
+  const lib=[];G.cats.forEach(c=>WORDS[c].forEach(x=>{const[w,h]=x.split('|');lib.push({w,c,h})}));
+  customs.forEach(w=>{for(let i=0;i<3;i++)lib.push({w,c:'Custom',h:'Starts with "'+w[0].toUpperCase()+'"'})});
+  if(!lib.length)return toast('Pick a pack or add custom words');
+  let pool=lib.filter(t=>!G.used.includes(t.w));
+  if(!pool.length){G.used=[];pool=lib;toast('Word list restarted')}
+  const t=pick(pool);G.used.push(t.w);G.imp=Math.min(G.imp,maxImp());save();
+  const ids=G.names.map((_,i)=>i);for(let i=ids.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[ids[i],ids[j]]=[ids[j],ids[i]]}
+  R={word:t.w,hint:t.h,cat:t.c,imps:ids.slice(0,G.imp),seen:[],starter:pick(G.names)};
+  cur=0;go('card')}
+function nextP(){cur<G.names.length-1?(cur++,go('card')):go('talk')}
+
+function render(){let h='';
+  if(scr==='names'){
+    h=`<h1>Imposter<br>Universe</h1><p class="sub">One phone, pass it around. Add everyone playing (3 or more).</p>
+    <div class="card"><div class="row"><input id="nm" maxlength="16" placeholder="Player name" onkeydown="if(event.key==='Enter')addName()"><button class="add" onclick="addName()">Add</button></div>
+    ${G.names.map((n,i)=>`<div class="pl"><span>${esc(n)}</span><button class="alt" onclick="delName(${i})" aria-label="Remove ${esc(n)}">✕</button></div>`).join('')||'<p class="sub">No players yet.</p>'}</div>
+    <button onclick="go('setup')" ${G.names.length<3?'disabled':''}>Next: game settings (${G.names.length} players)</button>`}
+  if(scr==='setup'){
+    G.imp=Math.min(G.imp,maxImp());
+    h=`<h2>Game settings</h2><div class="card"><label>Imposters</label><select onchange="G.imp=+this.value;save()">${Array.from({length:maxImp()},(_,i)=>i+1).map(n=>`<option ${n==G.imp?'selected':''}>${n}</option>`).join('')}</select>
+    <label>Word packs</label><div class="chips">${Object.keys(WORDS).map(c=>`<button class="chip ${G.cats.includes(c)?'on':''}" onclick="toggleCat('${c}')">${c}</button>`).join('')}</div>
+    <label>Extra words of your own (comma or new line)</label><textarea id="cw" rows="3" placeholder="Maggi, Bhai's bike, Surat" onchange="G.custom=this.value;save()">${esc(G.custom)}</textarea></div>
+    <button onclick="start()">Start game</button><button class="alt" onclick="go('names')">Back to players</button>`}
+  if(scr==='card'){const last=cur===G.names.length-1;
+    h=`<p class="sub" style="margin-bottom:0">Player ${cur+1} of ${G.names.length}</p><p class="sub">Press and hold the card to see your secret. Let go to hide it.</p>
+    <div class="card hold" id="hold" role="button" aria-label="Hold to reveal your secret"><b>${esc(G.names[cur])}</b></div>
+    <button id="done" onclick="nextP()" disabled>${last?'Done, start discussion':'Done, next player'}</button>`}
+  if(scr==='talk'){
+    h=`<h2>Discuss!</h2><div class="card"><b>${esc(R.starter)}</b> speaks first. Everyone gives one clue about the word, then vote together on who the imposter is.</div>
+    <button onclick="go('reveal')">Reveal the imposter</button>`}
+  if(scr==='reveal'){
+    h=`<h2>The reveal</h2><div class="card"><div>Word: <b class="ok">${esc(R.word)}</b></div>
+    <div>Imposter${R.imps.length>1?'s':''}: <b class="imp">${R.imps.map(i=>esc(G.names[i])).join(', ')}</b></div>
+    <div class="sub" style="margin:8px 0 0">Imposter hint was: ${esc(R.hint)}</div></div>
+    <button onclick="start()">Next round, same players</button><button class="alt" onclick="go('names')">Add or remove players</button>`}
+  app.innerHTML=h;if(scr==='card')bindHold()}
+
+function bindHold(){
+  const el=document.getElementById('hold'),done=document.getElementById('done'),imp=R.imps.includes(cur);
+  const on=()=>{el.innerHTML=imp?`<div><b class="imp">IMPOSTER</b><span>Hint: <b style="font-size:26px;display:inline">${esc(R.hint)}</b></span></div>`:`<div><span>Your word</span><b class="ok">${esc(R.word)}</b></div>`;
+    if(!R.seen.includes(cur))R.seen.push(cur);done.disabled=false};
+  const off=()=>{el.innerHTML=`<b>${esc(G.names[cur])}</b>`};
+  el.addEventListener('pointerdown',e=>{e.preventDefault();on()});
+  ['pointerup','pointerleave','pointercancel'].forEach(t=>el.addEventListener(t,off));
+  el.addEventListener('contextmenu',e=>e.preventDefault())}
+render();
+</script></body></html>
