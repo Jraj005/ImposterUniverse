@@ -58,14 +58,19 @@ function delName(i){G.names.splice(i,1);save();render()}
 function toggleCat(c){const i=G.cats.indexOf(c);i<0?G.cats.push(c):G.cats.splice(i,1);save();render()}
 
 function start(){
-  G.custom=document.getElementById('cw')?.value||G.custom;
-  const customs=G.custom.split(/[\n,]/).map(x=>x.trim()).filter(Boolean);
+  const cw=document.getElementById('cw');if(cw)G.custom=cw.value;
+  const customs=G.custom.split(/[\n,]/).map(x=>x.trim()).filter(Boolean).map(x=>{const[w,...r]=x.split(/[|=]/);const word=w.trim(),h=r.join(' ').trim();return{w:word,c:'Custom',h:h||'Starts with "'+word[0].toUpperCase()+'"'}}).filter(x=>x.w);
   const lib=[];G.cats.forEach(c=>WORDS[c].forEach(x=>{const[w,h]=x.split('|');lib.push({w,c,h})}));
-  customs.forEach(w=>{for(let i=0;i<3;i++)lib.push({w,c:'Custom',h:'Starts with "'+w[0].toUpperCase()+'"'})});
-  if(!lib.length)return toast('Pick a pack or add custom words');
-  let pool=lib.filter(t=>!G.used.includes(t.w));
-  if(!pool.length){G.used=[];pool=lib;toast('Word list restarted')}
-  const t=pick(pool);G.used.push(t.w);G.imp=Math.min(G.imp,maxImp());save();
+  if(!lib.length&&!customs.length)return toast('Pick a pack or add custom words');
+  G.since=(G.since||0)+1;if(!G.gap)G.gap=3+(Math.random()*3|0);
+  G.usedC=G.usedC||[];let t;
+  if(customs.length&&(G.since>G.gap||!lib.length)){
+    let cp=customs.filter(c=>!G.usedC.includes(c.w));if(!cp.length){G.usedC=[];cp=customs}
+    t=pick(cp);G.usedC.push(t.w);G.since=0;G.gap=3+(Math.random()*3|0)}
+  else{
+    let pool=lib.filter(x=>!G.used.includes(x.w));
+    if(!pool.length){G.used=[];pool=lib;toast('Word list restarted')}
+    t=pick(pool);G.used.push(t.w)}G.imp=Math.min(G.imp,maxImp());save();
   const ids=G.names.map((_,i)=>i);for(let i=ids.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[ids[i],ids[j]]=[ids[j],ids[i]]}
   R={word:t.w,hint:t.h,cat:t.c,imps:ids.slice(0,G.imp),seen:[],starter:pick(G.names)};
   cur=0;go('card')}
@@ -81,7 +86,7 @@ function render(){let h='';
     G.imp=Math.min(G.imp,maxImp());
     h=`<h2>Game settings</h2><div class="card"><label>Imposters</label><select onchange="G.imp=+this.value;save()">${Array.from({length:maxImp()},(_,i)=>i+1).map(n=>`<option ${n==G.imp?'selected':''}>${n}</option>`).join('')}</select>
     <label>Word packs</label><div class="chips">${Object.keys(WORDS).map(c=>`<button class="chip ${G.cats.includes(c)?'on':''}" onclick="toggleCat('${c}')">${c}</button>`).join('')}</div>
-    <label>Extra words of your own (comma or new line)</label><textarea id="cw" rows="3" placeholder="Maggi, Bhai's bike, Surat" onchange="G.custom=this.value;save()">${esc(G.custom)}</textarea></div>
+    <label>Your own words, one per line: word | hint (hint is optional)</label><textarea id="cw" rows="4" placeholder="Maggi | Instant&#10;Bhai's bike | Loud&#10;Surat" onchange="G.custom=this.value;save()">${esc(G.custom)}</textarea><p class="sub" style="margin:0">One of your words is mixed in every 3 to 5 rounds.</p></div>
     <button onclick="start()">Start game</button><button class="alt" onclick="go('names')">Back to players</button>`}
   if(scr==='card'){const last=cur===G.names.length-1;
     h=`<p class="sub" style="margin-bottom:0">Player ${cur+1} of ${G.names.length}</p><p class="sub">Press and hold the card to see your secret. Let go to hide it.</p>
